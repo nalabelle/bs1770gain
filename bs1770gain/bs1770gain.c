@@ -34,7 +34,20 @@
 #endif // ]
 
 ///////////////////////////////////////////////////////////////////////////////
+#ifdef __FreeBSD__
+#define CLOCKS_PER_MILLIS (1)
+#include <sys/types.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+long fb_clock() {
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+  return (long) (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) * 1000000 + usage.ru_utime.tv_usec + usage.ru_stime.tv_usec;
+}
+#else
 #define CLOCKS_PER_MILLIS (CLOCKS_PER_SEC/1000)
+#endif
+
 
 #define BS1770GAIN_AGGREGATE_METHOD ( \
   FFSOX_AGGREGATE_MOMENTARY_MAXIMUM \
@@ -984,9 +997,17 @@ fprintf(stderr,"\n");
     bs1770gain_print_classic(&options.p,f);
 
   options.p.vmt->session.head(&options.p);
+#ifdef __FreeBSD__
+  t1=fb_clock();
+#else
   t1=clock();
+#endif
   bs1770gain_tree_analyze(&root,odirname,&options);
+#ifdef __FreeBSD__
+  t2=fb_clock();
+#else
   t2=clock();
+#endif
 
   if (0==root.cli.count)
     fprintf(stderr,"Warning: No valid input files/folders given.\n");

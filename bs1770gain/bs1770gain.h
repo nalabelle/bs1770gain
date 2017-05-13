@@ -290,6 +290,10 @@ struct bs1770gain_track {
   bs1770gain_track_t *next;
 };
 
+#ifdef __FreeBSD__
+long fb_clock(void);
+#endif
+
 #if defined (BS1770GAIN_OVERWRITE) // [
 bs1770gain_track_t *bs1770gain_track_new(const char *idir, const char *ipath,
     bs1770gain_album_t *album, const bs1770gain_options_t *options);
